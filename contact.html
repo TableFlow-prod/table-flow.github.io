@@ -188,78 +188,7 @@
 										</div>
 									</div>
 								</form>
-
-<script>
-(function(){
-  const form = document.getElementById('contact-form');
-  if (!form) return;
-
-  // Добавим honeypot (если его нет в HTML)
-  if (!form.querySelector('input[name="_gotcha"]')) {
-    const hp = document.createElement('input');
-    hp.type = 'text';
-    hp.name = '_gotcha';
-    hp.style.display = 'none';
-    form.appendChild(hp);
-  }
-
-  // Сообщения — можно заменить на более красивую реализацию
-  function showSuccess() {
-    alert('Dziękujemy! Twoja wiadomość została wysłana.');
-  }
-  function showError(msg) {
-    alert('Błąd wysyłki: ' + (msg || 'Spróbuj później.'));
-  }
-
-  form.addEventListener('submit', async function(e){
-    e.preventDefault();
-
-    // Собираем поля формы
-    const fd = new FormData(form);
-    // Проверка honeypot
-    if (fd.get('_gotcha')) {
-      // silently accept (spam)
-      showSuccess();
-      form.reset();
-      return;
-    }
-
-    // Подготовим объект с полями
-    const payload = {
-      name: fd.get('name') || '',
-      email: fd.get('email') || '',
-      subject: fd.get('subject') || '',
-      message: fd.get('message') || '',
-      _gotcha: fd.get('_gotcha') || ''
-    };
-
-    try {
-      const res = await fetch('https://table-flow.dmytrii-spectrum.workers.dev/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(()=>null);
-        showError(json && json.error ? json.error : 'Network error');
-        return;
-      }
-
-      const data = await res.json().catch(()=>({}));
-      if (data && data.ok) {
-        showSuccess();
-        form.reset();
-      } else {
-        showError((data && data.error) || 'Unknown error');
-      }
-    } catch (err) {
-      console.error(err);
-      showError(err.message);
-    }
-  });
-})();
-</script>								
+						
 								<!-- Submit result -->
 								<div class="messages mrt-20 text-center"></div>
 							</div>
@@ -364,6 +293,94 @@
 		<script src="assets/js/contact.js"></script>
 		<script src="assets/js/validator.js"></script>
 		<script src="assets/js/animations.js"></script>
-		
+		<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('contact-form');
+  if (!form) { console.warn('[contact] form not found'); return; }
+
+  // Сообщения (внизу формы). Стили не трогаем.
+  let msg = document.createElement('div');
+  msg.setAttribute('aria-live', 'polite');
+  msg.style.marginTop = '16px';
+  form.appendChild(msg);
+
+  // Honeypot, если нет в вёрстке
+  if (!form.querySelector('input[name="_gotcha"]')) {
+    const hp = document.createElement('input');
+    hp.type = 'text';
+    hp.name = '_gotcha';
+    hp.style.display = 'none';
+    form.appendChild(hp);
+  }
+
+  // Находим кнопку
+  const submitBtn = form.querySelector('button[type="submit"], .dn-link-btn');
+  const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+
+  function setLoading(on) {
+    if (!submitBtn) return;
+    submitBtn.disabled = !!on;
+    if (on) {
+      submitBtn.classList.add('is-sending');     // можете стилизовать у себя
+      submitBtn.innerHTML = 'Wysyłanie…';
+    } else {
+      submitBtn.classList.remove('is-sending');
+      submitBtn.innerHTML = originalBtnHtml;
+    }
+  }
+
+  function showMessage(text, ok) {
+    msg.textContent = text;
+    msg.style.color = ok ? '#1a7f37' : '#b42318'; // только цвет текста; остальное — ваши стили остаются
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const fd = new FormData(form);
+
+    // Если бот заполнил honeypot — просто показываем успех и выходим
+    if (fd.get('_gotcha')) {
+      showMessage('Dziękujemy! Twoja wiadomość została wysłana.', true);
+      form.reset();
+      return;
+    }
+
+    setLoading(true);
+    showMessage('', true);
+
+    try {
+      const res = await fetch('https://table-flow.dmytrii-spectrum.workers.dev/', {
+        method: 'POST',
+        // ВАЖНО: никаких кастомных заголовков — пусть браузер сам поставит boundary.
+        body: fd,
+        mode: 'cors',
+        redirect: 'follow',
+        credentials: 'omit'
+      });
+
+      // Если сервер ответил не 2xx
+      if (!res.ok) {
+        let detail = '';
+        try { const j = await res.json(); detail = j && (j.error || j.detail || ''); } catch {}
+        throw new Error(detail || ('HTTP ' + res.status));
+      }
+
+      // Ждём JSON { ok: true }
+      let data = {};
+      try { data = await res.json(); } catch {}
+      if (!data.ok) throw new Error(data.error || 'Unknown error');
+
+      showMessage('Dziękujemy! Twoja wiadomość została wysłana.', true);
+      form.reset();
+    } catch (err) {
+      console.error('[contact] submit error:', err);
+      showMessage('Błąd wysyłki. Spróbuj ponownie.', false);
+    } finally {
+      setLoading(false);
+    }
+  });
+});
+</script>
 	</body>
 </html>
