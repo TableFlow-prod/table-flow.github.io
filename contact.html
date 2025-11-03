@@ -188,6 +188,78 @@
 										</div>
 									</div>
 								</form>
+
+<script>
+(function(){
+  const form = document.getElementById('contact-form');
+  if (!form) return;
+
+  // Добавим honeypot (если его нет в HTML)
+  if (!form.querySelector('input[name="_gotcha"]')) {
+    const hp = document.createElement('input');
+    hp.type = 'text';
+    hp.name = '_gotcha';
+    hp.style.display = 'none';
+    form.appendChild(hp);
+  }
+
+  // Сообщения — можно заменить на более красивую реализацию
+  function showSuccess() {
+    alert('Dziękujemy! Twoja wiadomość została wysłana.');
+  }
+  function showError(msg) {
+    alert('Błąd wysyłki: ' + (msg || 'Spróbuj później.'));
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+
+    // Собираем поля формы
+    const fd = new FormData(form);
+    // Проверка honeypot
+    if (fd.get('_gotcha')) {
+      // silently accept (spam)
+      showSuccess();
+      form.reset();
+      return;
+    }
+
+    // Подготовим объект с полями
+    const payload = {
+      name: fd.get('name') || '',
+      email: fd.get('email') || '',
+      subject: fd.get('subject') || '',
+      message: fd.get('message') || '',
+      _gotcha: fd.get('_gotcha') || ''
+    };
+
+    try {
+      const res = await fetch('https://table-flow.dmytrii-spectrum.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(()=>null);
+        showError(json && json.error ? json.error : 'Network error');
+        return;
+      }
+
+      const data = await res.json().catch(()=>({}));
+      if (data && data.ok) {
+        showSuccess();
+        form.reset();
+      } else {
+        showError((data && data.error) || 'Unknown error');
+      }
+    } catch (err) {
+      console.error(err);
+      showError(err.message);
+    }
+  });
+})();
+</script>								
 								<!-- Submit result -->
 								<div class="messages mrt-20 text-center"></div>
 							</div>
