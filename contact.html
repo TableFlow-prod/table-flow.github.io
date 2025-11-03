@@ -374,9 +374,11 @@ document.addEventListener('DOMContentLoaded', function () {
       showMessage('Dziękujemy! Twoja wiadomość została wysłana.', true);
       form.reset();
     } catch (err) {
-      console.error('[contact] submit error:', err);
-      showMessage('Błąd wysyłki. Spróbuj ponownie.', false);
-    } finally {
+  console.error('[contact] submit error:', err);
+  if (err && err.message) console.log('MailChannels detail:', err.message);
+  showMessage('Błąd wysyłki. Spróbuj ponownie.', false);
+}
+ finally {
       setLoading(false);
     }
   });
