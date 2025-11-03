@@ -188,7 +188,7 @@
 										</div>
 									</div>
 								</form>
-						
+
 								<!-- Submit result -->
 								<div class="messages mrt-20 text-center"></div>
 							</div>
@@ -361,10 +361,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
       // Если сервер ответил не 2xx
       if (!res.ok) {
-        let detail = '';
-        try { const j = await res.json(); detail = j && (j.error || j.detail || ''); } catch {}
-        throw new Error(detail || ('HTTP ' + res.status));
-      }
+  		let txt = '';
+  		try { const j = await res.json(); txt = j && (j.detail || j.error || ''); } catch {}
+  		throw new Error(txt || ('HTTP ' + res.status));
+		}
 
       // Ждём JSON { ok: true }
       let data = {};
