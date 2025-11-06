@@ -497,7 +497,12 @@
 }
 @media (max-width: 1399px){
 	.pf{
-		margin-left: 2%;
+		margin-left: 20%;
+	}
+}
+@media (max-width: 700px){
+	.pf{
+		margin-left: 1.8%;
 	}
 }
 /* корпус телефона под PNG-рамкой и над фоном страницы */
@@ -558,14 +563,15 @@
   position:absolute;
   left:var(--screen-left,6%); right:var(--screen-right,6%);
   top:var(--screen-top,4%);   bottom:var(--screen-bottom,8%);
-  background:#fff; border-radius:28px; overflow:hidden; display:flex; flex-direction:column;
+  background:#fff; border-radius:48px; overflow:hidden; display:flex; flex-direction:column;
   border:1px solid var(--line); z-index:1;
 }
 /* статус/шапка */
+.pf-clock{margin-left: 10%}
 .pf-status{ padding:8px 10px 0; display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted) }
 .pf-ico{ width:18px; height:18px; fill:currentColor; display:block }
 .pf-ico.s,.pf-ico.b{ width:16px; height:16px; opacity:.7 }
-.pf-sys{ display:flex; gap:8px; align-items:center }
+.pf-sys{ margin-right: 10%; display:flex; gap:8px; align-items:center }
 .pf-appbar{ padding:10px; display:flex; align-items:center; justify-content:space-between }
 .pf-brand{ display:flex; gap:10px; align-items:center }
 .pf-logo{ width:32px; height:32px; border-radius:10px; display:grid; place-items:center; background:#111; color:#fff; font-weight:800 }
